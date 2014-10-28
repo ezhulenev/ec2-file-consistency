@@ -32,14 +32,14 @@ object RunEC2ConsistencyCheck extends App {
     println(s"Run EC2 Consistency check. File writes n: $n. Threads: $nThreads. Temp directory: $dir. Content length: $length. Sleep after write: $sleep")
 
     val random = new Random()
-
     val writePool = Executors.newFixedThreadPool(nThreads)
     val readPool = Executors.newFixedThreadPool(nThreads)
 
+    val bytes = new Array[Byte](length)
+    random.nextBytes(bytes)
+
     for (i <- 1 to n) {
-      val filename = random.nextString(10)
-      val bytes = new Array[Byte](length)
-      random.nextBytes(bytes)
+      val filename = random.alphanumeric.take(20).mkString("")
       val latch = new CountDownLatch(1)
 
       // Submit tasks to pool
@@ -93,6 +93,7 @@ object RunEC2ConsistencyCheck extends App {
       } finally {
         is.close()
         os.close()
+        file.delete()
       }
 
       val fileContent = baos.toByteArray
